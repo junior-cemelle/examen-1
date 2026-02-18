@@ -1,0 +1,6 @@
+# examen-1/.gitignore
+.DS_Store
+Thumbs.db
+*.log
+*.env
+/vendor/

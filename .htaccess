@@ -1,0 +1,22 @@
+RewriteEngine On
+
+# -----------------------------------------------------------------------
+# Router raíz de examen-1
+# Enruta cada servicio a su directorio correspondiente.
+# -----------------------------------------------------------------------
+
+# -- Servicio: password -----------------------------------------------------
+# GET  /api/password          → api/password/index.php
+# POST /api/password          → api/password/index.php
+# POST /api/passwords         → api/password/index.php
+# POST /api/password/validate → api/password/validate.php
+
+RewriteRule ^api/password/validate/?$ api/password/validate.php [L,QSA]
+RewriteRule ^api/passwords/?$         api/password/index.php    [L,QSA]
+RewriteRule ^api/password/?$          api/password/index.php    [L,QSA]
+
+# -- Servicio: qr (pendiente) -----------------------------------------------
+# RewriteRule ^api/qr/?$ api/qr/index.php [L,QSA]
+
+# -- Servicio: short (pendiente) --------------------------------------------
+# RewriteRule ^api/short/?$ api/short/index.php [L,QSA]

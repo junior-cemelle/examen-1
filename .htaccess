@@ -1,4 +1,5 @@
 RewriteEngine On
+DirectorySlash Off
 
 # -----------------------------------------------------------------------
 # Router raíz de examen-1
@@ -28,5 +29,12 @@ RewriteRule ^api/qr/wifi/?$        api/qr/index.php [L,QSA]
 RewriteRule ^api/qr/geo/?$         api/qr/index.php [L,QSA]
 RewriteRule ^api/qr/?$             api/qr/index.php [L,QSA]
 
-# -- Servicio: short (pendiente) --------------------------------------------
-# RewriteRule ^api/short/?$ api/short/index.php [L,QSA]
+
+# -- Servicio: short --------------------------------------------------------
+# POST /api/short                   → acortar URL
+# GET  /api/short/{code}            → redirección 301
+# GET  /api/short/{code}/stats      → estadísticas
+
+RewriteRule ^api/short/([A-Za-z0-9]+)/stats/?$ api/short/index.php [L,QSA]
+RewriteRule ^api/short/([A-Za-z0-9]+)/?$       api/short/index.php [L,QSA]
+RewriteRule ^api/short/?$                       api/short/index.php [L,QSA]

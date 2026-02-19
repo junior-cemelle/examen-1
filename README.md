@@ -73,11 +73,26 @@ examen-1/
     │   ├── PasswordValidator.php ← Evaluador de fortaleza
     │   └── Response.php       ← Helper de respuestas JSON uniformes
     │
-    ├── qr/                    ← Servicio 2: generación de QR (pendiente)
-    │   └── ...
+    └── qr/                        ← Servicio 2: generacion de qr
+    │   ├── composer.json          ← Dependencia: endroid/qr-code ^5.0
+    │   ├── index.php              ← Router + punto de entrada único
+    │   ├── QrContentBuilder.php   ← Construye el payload por tipo
+    │   ├── QrGenerator.php        ← Encapsula endroid/qr-code
+    │   ├── QrService.php          ← Orquestador, traduce params HTTP
+    │   └── Response.php           ← JSON y respuesta de imagen directa
     │
     └── short/                 ← Servicio 3: acortador de URLs (pendiente)
-        └── ...
+        ├── .gitignore              ← Excluye short.db del repo
+        ├── data/
+        │   └── .gitkeep            ← Trackea el directorio vacío en git
+        │                              (short.db se crea aquí)
+        ├── Database.php            ← Conexión SQLite + creación de esquema
+        ├── ShortCodeGenerator.php  ← Genera códigos únicos con random_int()
+        ├── UrlValidator.php        ← Valida URLs, bloquea bucles e IPs privadas
+        ├── RateLimiter.php         ← Límite de 30 URLs/hora por IP
+        ├── ShortService.php        ← Orquestador: shorten / resolve / stats
+        ├── Response.php            ← JSON, redirección y CORS
+        └── index.php               ← Router principal
 ```
 
 ---
@@ -345,6 +360,105 @@ Content-Type: image/png
   }
 }
 ```
+
+---
+
+## Endpoints — Servicio `short`
+
+Acorta URLs largas, redirige a las originales y registra estadísticas de acceso.
+
+> **Almacenamiento:** SQLite — el archivo `short.db` se genera automáticamente en `api/short/data/` con la primera petición. El directorio necesita permisos de escritura en el servidor.  
+> **Requisito:** PHP debe tener habilitada la extensión `pdo_sqlite` (incluida por defecto en PHP 8.3).
+
+---
+
+### 1. Acortar una URL
+
+```
+POST /api/short
+Content-Type: application/json
+
+{
+  "url": "https://example.com/pagina-muy-larga",
+  "expiresAt": "2026-12-31",
+  "maxUses": 100,
+  "codeLength": 6
+}
+```
+
+**Parámetros**
+
+| Parámetro   | Tipo   | Requerido | Descripción                                      |
+|-------------|--------|-----------|--------------------------------------------------|
+| url         | string | si        | URL original a acortar (http/https)              |
+| expiresAt   | string | no        | Fecha de expiración (YYYY-MM-DD o ISO 8601)      |
+| maxUses     | int    | no        | Número máximo de redirecciones permitidas (≥ 1)  |
+| codeLength  | int    | no        | Longitud del código generado (mínimo 5, default 6)|
+
+**Respuesta 201**
+```json
+{
+  "success": true,
+  "data": {
+    "code": "aB3xZ9",
+    "shortUrl": "http://servidor/examen-1/api/short/aB3xZ9",
+    "originalUrl": "https://example.com/pagina-muy-larga",
+    "createdAt": "2026-02-19 01:57:12",
+    "expiresAt": "2026-12-31 00:00:00",
+    "maxUses": 100
+  }
+}
+```
+
+---
+
+### 2. Redirección
+
+```
+GET /api/short/{code}
+```
+
+Redirige con **HTTP 301** a la URL original y registra la visita (fecha, IP, User-Agent).
+
+Si el enlace está expirado o alcanzó su límite de usos devuelve **HTTP 410**.
+
+---
+
+### 3. Estadísticas
+
+```
+GET /api/short/{code}/stats
+```
+
+**Respuesta 200**
+```json
+{
+  "success": true,
+  "data": {
+    "code": "aB3xZ9",
+    "shortUrl": "http://servidor/examen-1/api/short/aB3xZ9",
+    "originalUrl": "https://example.com/pagina-muy-larga",
+    "createdAt": "2026-02-19 01:57:12",
+    "expiresAt": "2026-12-31 00:00:00",
+    "maxUses": 100,
+    "isActive": true,
+    "totalVisits": 42,
+    "uniqueVisitors": 18,
+    "visitsByDay": [
+      { "day": "2026-02-18", "visits": "10" },
+      { "day": "2026-02-19", "visits": "32" }
+    ],
+    "lastVisits": [
+      {
+        "visited_at": "2026-02-19 01:55:36",
+        "visitor_ip": "172.18.0.1",
+        "user_agent": "PostmanRuntime/7.51.1"
+      }
+    ]
+  }
+}
+```
+
 
 ---
 

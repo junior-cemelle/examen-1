@@ -15,8 +15,18 @@ RewriteRule ^api/password/validate/?$ api/password/validate.php [L,QSA]
 RewriteRule ^api/passwords/?$         api/password/index.php    [L,QSA]
 RewriteRule ^api/password/?$          api/password/index.php    [L,QSA]
 
-# -- Servicio: qr (pendiente) -----------------------------------------------
-# RewriteRule ^api/qr/?$ api/qr/index.php [L,QSA]
+# -- Servicio: qr -------------------------------------------------------------
+# GET/POST /api/qr                 → generación genérica (campo type en params)
+# POST     /api/qr/text            → QR texto plano
+# POST     /api/qr/url             → QR de URL
+# POST     /api/qr/wifi            → QR de WiFi
+# POST     /api/qr/geo             → QR de geolocalización
+
+RewriteRule ^api/qr/text/?$        api/qr/index.php [L,QSA]
+RewriteRule ^api/qr/url/?$         api/qr/index.php [L,QSA]
+RewriteRule ^api/qr/wifi/?$        api/qr/index.php [L,QSA]
+RewriteRule ^api/qr/geo/?$         api/qr/index.php [L,QSA]
+RewriteRule ^api/qr/?$             api/qr/index.php [L,QSA]
 
 # -- Servicio: short (pendiente) --------------------------------------------
 # RewriteRule ^api/short/?$ api/short/index.php [L,QSA]

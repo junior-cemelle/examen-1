@@ -220,6 +220,132 @@ GET /api/password?length=1000
 }
 ```
 
+
+---
+
+## Endpoints — Servicio `qr`
+
+Genera códigos QR en formato PNG a partir de diferentes tipos de contenido.
+
+> **Requisito:** La extensión GD de PHP debe estar habilitada en el servidor.  
+> **Librería:** [phpqrcode](https://sourceforge.net/projects/phpqrcode/) — incluida en `api/qr/lib/phpqrcode/`
+
+### Parámetros comunes
+
+| Parámetro        | Tipo   | Default | Descripción                        |
+|------------------|--------|---------|------------------------------------|
+| size             | int    | 300     | Tamaño aproximado en px (100–1000) |
+| errorCorrection  | string | M       | Nivel L / M / Q / H               |
+| margin           | int    | 1       | Margen en módulos (0–10)           |
+| json             | bool   | false   | Si `true`, devuelve base64 en JSON |
+
+---
+
+### 1. QR genérico
+
+```
+GET /api/qr?type=url&url=https://example.com&size=300
+```
+
+```
+POST /api/qr/url
+Content-Type: application/json
+
+{
+  "url": "https://example.com",
+  "size": 300,
+  "errorCorrection": "M"
+}
+```
+
+---
+
+### 2. QR de texto plano
+
+```
+POST /api/qr/text
+Content-Type: application/json
+
+{
+  "text": "Hola mundo",
+  "size": 300
+}
+```
+
+---
+
+### 3. QR de URL
+
+```
+POST /api/qr/url
+Content-Type: application/json
+
+{
+  "url": "https://example.com",
+  "size": 400,
+  "errorCorrection": "H"
+}
+```
+
+---
+
+### 4. QR de red WiFi
+
+```
+POST /api/qr/wifi
+Content-Type: application/json
+
+{
+  "ssid": "MiRedCasa",
+  "password": "12345678",
+  "encryption": "WPA",
+  "size": 300
+}
+```
+
+| Campo      | Valores aceptados      |
+|------------|------------------------|
+| encryption | `WPA`, `WEP`, `nopass` |
+
+---
+
+### 5. QR de geolocalización
+
+```
+POST /api/qr/geo
+Content-Type: application/json
+
+{
+  "lat": 20.5937,
+  "lng": -100.3921,
+  "size": 300
+}
+```
+
+---
+
+### Respuestas
+
+**Imagen directa** (default) — el servidor devuelve el PNG directamente:
+
+```
+Content-Type: image/png
+```
+
+**JSON con base64** — agrega `"json": true` al body o `?json=true` al query string:
+
+```json
+{
+  "success": true,
+  "data": {
+    "format": "png",
+    "mimeType": "image/png",
+    "size": 300,
+    "image": "iVBORw0KGgoAAAANSUhEUgAA..."
+  }
+}
+```
+
 ---
 
 ## Errores HTTP usados
